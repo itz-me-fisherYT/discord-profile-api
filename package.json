@@ -1,7 +1,7 @@
 {
-  "name": "itzfisher_website",
+  "name": "discord-profile-api",
   "version": "1.0.0",
-  "description": "Discord profile API for ItzRealFisher",
+  "description": "Live Discord profile API for ItzRealFisher",
   "main": "app.js",
   "scripts": {
     "start": "node app.js"
