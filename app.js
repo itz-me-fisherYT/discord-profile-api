@@ -1,17 +1,15 @@
 const express = require("express");
+const cors = require("cors");
 const { Client, GatewayIntentBits } = require("discord.js");
 
-// ------------------------------
-// Discord Profile API Server
-// ------------------------------
 const app = express();
+app.use(cors()); // allow all websites to load your API
 
-// -------- ENVIRONMENT VARIABLES --------
-// These come from Render (Environment → Environment Variables)
-const USER_ID = process.env.DISCORD_USER_ID; // your Discord ID
-const BOT_TOKEN = process.env.DISCORD_TOKEN; // your bot token
+// ---------- SETTINGS ----------
+const USER_ID = "1319567972335091773"; 
+const BOT_TOKEN = process.env.BOT_TOKEN; // Render uses env variables
 const PORT = process.env.PORT || 3000;
-// ---------------------------------------
+// ------------------------------
 
 let profileCache = {
     username: "Loading...",
@@ -20,18 +18,15 @@ let profileCache = {
     updated: 0
 };
 
-// ------------------------------
-// Discord Bot
-// ------------------------------
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMembers,
-        GatewayIntentBits.GuildPresences
+        GatewayIntentBits.GuildMembers
     ]
 });
 
-client.on("ready", async () => {
+// NEW EVENT NAME FOR DISCORD.JS v15+
+client.on("clientReady", () => {
     console.log(`Bot logged in as ${client.user.tag}`);
 
     async function updateProfile() {
@@ -52,22 +47,16 @@ client.on("ready", async () => {
     }
 
     updateProfile();
-    setInterval(updateProfile, 10000); // updates every 10s
+    setInterval(updateProfile, 10000);
 });
 
 client.login(BOT_TOKEN);
 
-// ------------------------------
-// API Endpoint
-// ------------------------------
+// API endpoint
 app.get("/profile.json", (req, res) => {
-    res.setHeader("Content-Type", "application/json");
-    res.send(JSON.stringify(profileCache, null, 2));
+    res.json(profileCache);
 });
 
-// ------------------------------
-// Start Server
-// ------------------------------
 app.listen(PORT, () => {
     console.log(`Profile API running on port ${PORT}`);
 });
