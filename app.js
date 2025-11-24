@@ -6,11 +6,12 @@ const { Client, GatewayIntentBits } = require("discord.js");
 // ------------------------------
 const app = express();
 
-// -------- YOUR SETTINGS --------
-const USER_ID = "YOUR_DISCORD_ID"; // your Discord ID
-const PORT = process.env.PORT || 3000; // required for Railway/Render
-const BOT_TOKEN = "YOUR_BOT_TOKEN"; // your bot token
-// --------------------------------
+// -------- ENVIRONMENT VARIABLES --------
+// These come from Render (Environment → Environment Variables)
+const USER_ID = process.env.DISCORD_USER_ID; // your Discord ID
+const BOT_TOKEN = process.env.DISCORD_TOKEN; // your bot token
+const PORT = process.env.PORT || 3000;
+// ---------------------------------------
 
 let profileCache = {
     username: "Loading...",
