@@ -3,18 +3,18 @@ const cors = require("cors");
 const { Client, GatewayIntentBits } = require("discord.js");
 
 const app = express();
-app.use(cors()); // allow website to fetch JSON
+app.use(cors());
 
 // ---------- SETTINGS ----------
-const USER_ID = process.env.USER_ID || "1319567972335091773"; 
-const BOT_TOKEN = process.env.BOT_TOKEN; // set this in Render env variables
+const USER_ID = process.env.USER_ID || "1319567972335091773";
+const BOT_TOKEN = process.env.BOT_TOKEN;
 const PORT = process.env.PORT || 3000;
 // ------------------------------
 
 let profileCache = {
     username: "Loading...",
+    displayName: "Loading...",
     avatar: "",
-    tag: "",
     updated: 0,
     status: "offline",
     activity: "None"
@@ -28,36 +28,53 @@ const client = new Client({
     ]
 });
 
-// Discord.js v15+ uses clientReady instead of ready
-client.on("clientReady", () => {
+// Discord.js v15+
+client.once("clientReady", () => {
     console.log(`Bot logged in as ${client.user.tag}`);
 
     async function updateProfile() {
         try {
+            // Fetch user
             const user = await client.users.fetch(USER_ID, { force: true });
-            const member = await client.guilds.cache.first()?.members.fetch(USER_ID).catch(()=>null);
 
+            // Try to fetch member from any guild the bot is in
+            let member = null;
+            for (const guild of client.guilds.cache.values()) {
+                try {
+                    member = await guild.members.fetch(USER_ID);
+                    if (member) break;
+                } catch {}
+            }
+
+            // Activity parsing
             let activity = "None";
             if (member?.presence?.activities?.length) {
                 activity = member.presence.activities.map(a => {
-                    if (a.type === 0) return `Playing ${a.name}`;
-                    if (a.type === 2) return `Listening to ${a.name}`;
-                    if (a.type === 3) return `Watching ${a.name}`;
-                    if (a.type === 4) return `Custom: ${a.state}`;
-                    return a.name;
+                    switch (a.type) {
+                        case 0: return `Playing ${a.name}`;
+                        case 2: return `Listening to ${a.name}`;
+                        case 3: return `Watching ${a.name}`;
+                        case 4: return a.state ? `Custom: ${a.state}` : "Custom Status";
+                        default: return a.name;
+                    }
                 }).join(", ");
             }
 
             profileCache = {
                 username: user.username,
+                displayName: user.globalName || member?.displayName || user.username,
                 avatar: user.displayAvatarURL({ extension: "png", size: 256 }),
-                tag: `${user.username}`,
                 updated: Date.now(),
                 status: member?.presence?.status || "offline",
                 activity
             };
 
-            console.log("Profile updated:", profileCache.username, profileCache.status, profileCache.activity);
+            console.log(
+                "Profile updated:",
+                profileCache.displayName,
+                profileCache.status,
+                profileCache.activity
+            );
         } catch (err) {
             console.error("Error updating profile:", err.message);
         }
